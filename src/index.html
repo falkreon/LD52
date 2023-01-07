@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<style>
+		
+		canvas {
+			image-rendering: crisp-edges;
+			image-rendering: -moz-crisp-edges;
+			image-rendering: -webkit-optimize-contrast;
+			-ms-interpolation-mode: nearest-neighbor;
+		}
+		
+		.grid {
+			display: grid;
+			grid-template-columns: repeat(auto-fill, minmax(384px, 1fr));
+			grid-column-gap: 10px;
+		}
+		
+		.section {
+			border: 3px solid #00F;
+			max-width: 384px;
+			margin-left: 10px;
+			margin-right: 10px;
+			padding-left: 0px;
+			padding-right: 0px;
+			width: 1fr;
+		}
+		
+		.fakebutton {
+			text-align: center;
+			font-size: 20pt;
+		}
+		
+		.noselect {
+		  -webkit-touch-callout: none; /* iOS Safari */
+		    -webkit-user-select: none; /* Safari */
+		     -khtml-user-select: none; /* Konqueror HTML */
+		       -moz-user-select: none; /* Old versions of Firefox */
+		        -ms-user-select: none; /* Internet Explorer/Edge */
+		            user-select: none; /* Non-prefixed version, currently supported by Chrome, Edge, Opera and Firefox */
+		}
+		
+		.upgrade {
+			width: 376;
+			text-align: left;
+			border: 1px solid #000;
+			margin: 2px;
+			padding: 2px;
+		}
+		</style>
+	</head>
+	<body>
+		<p>Ludum Dare 52: Untitled Harvest Game</p>
+		
+		<div class="grid">
+		
+		<div class="section" id="adventure_section">
+		<canvas class="noselect" id="adventure"  width=384, height=384, style="width: 384px; height: 384px; background-color: #000;" onClick = "attack(game);">
+		</canvas>
+		<div class="noselect fakebutton" onClick="attack(game);">(tap to attack)</div>
+		<div id="adventure_upgrades">
+		</div>
+		</div>
+		
+		
+		<div class="section" id="garden_section" style="display: none;">
+			
+			<canvas id="garden" width=384, height=384, style="width: 384px; height: 384px; background-color: #000;">
+			</canvas>
+			
+			
+		</div>
+		
+		
+		</div>
+		
+		<script src='https://cdn.jsdelivr.net/npm/bignumber.js@9.1.0/bignumber.min.js'></script>
+		<script type="text/javascript" src="adventure.js"></script>
+		<script>
+		const ticks_per_second = 20;
+		const msec_per_tick = 1000 / ticks_per_second;
+		const save_period = 200;
+		const gardenWidth = 12;
+		const gardenHeight = 12;
+		var previousFrame = undefined;
+		var tickBuffer = 0;
+		var ticksSinceSave = -1;
+		
+		function loadImage(src) {
+			//TODO: Will painting throw an error before the image is loaded? If not idc.
+			var result = new Image();
+			result.src = src;
+			return result;
+		}
+		
+		//Assets
+		var dirt = loadImage("data/dirt.png");
+		var adventureBg = loadImage("data/bg_plains.png");
+		
+		//GAME
+		
+		var game = {
+			"current_enemy": {
+				"name": "Dionaea",
+				"img": loadImage("data/enemy_plant.png"),
+				"hp": 20,
+				"maxhp": 20
+			},
+			"enemy_cooldown": 0,
+			"enemy_cooldown_max": 1000, //msec
+			"attack_cooldown_max": 150, //msec
+			"player": {
+				"attack": 1,
+				"attack_cooldown": 0,
+				"dpt": 0,
+				"upgrade_levels": []
+			}
+		};
+		
+		
+		
+		function load() {
+			if (window.localStorage.length>0) {
+				let saveObject = JSON.parse(window.localStorage.getItem("save"));
+				if (saveObject != null) {
+					game.player = saveObject.player;
+				} else {
+					console.log("Save data was null.");
+				}
+			} else {
+				console.log("No save data found.");
+			}
+		}
+		
+		function save() {
+			let saveObject = {};
+			saveObject.player = game.player;
+			
+			let saveString = JSON.stringify(saveObject);
+			localStorage.setItem("save", saveString);
+			
+			console.log("Saved.");
+		}
+		
+		function tick() {
+			if (ticksSinceSave == -1) {
+				load();
+				ticksSinceSave = 0;
+			} else {
+				ticksSinceSave++;
+				if (ticksSinceSave > save_period) {
+					save();
+					ticksSinceSave = 0;
+				}
+			}
+		
+		
+			if (game.current_enemy != null) {
+				game.current_enemy.hp =  Math.max(game.current_enemy.hp - game.player.dpt, 0);
+				
+				if (game.current_enemy.hp <= 0) {
+					game.current_enemy = null;
+					game.enemy_cooldown = game.enemy_cooldown_max;
+				}
+			}
+		}
+		
+		function frame(now) {
+			if (previousFrame !== undefined) {
+				const elapsed = now - previousFrame;
+				
+				if (game.player.attack_cooldown > 0) {
+					game.player.attack_cooldown = Math.max(game.player.attack_cooldown - elapsed, 0);
+				}
+				
+				if (game.enemy_cooldown > 0) {
+					game.enemy_cooldown = Math.max(game.enemy_cooldown - elapsed, 0);
+					
+					if (game.enemy_cooldown <= 0) {
+						spawnMonster();
+					}
+				}
+				
+				tickBuffer += elapsed;
+				var ticksThisRound = 0;
+				while(tickBuffer>=msec_per_tick) {
+					tickBuffer -= msec_per_tick;
+					tick();
+					ticksThisRound++;
+					if (ticksThisRound>3) break;
+				}
+				
+				paintGarden(game);
+				paintAdventure(game);
+				
+				//garden.clearRect(0,0,garden.canvas.width, garden.canvas.height);
+				
+				//console.log("foo");
+			} else {
+				//Let's load in some buttons
+				var s = "";
+				for(var i=0; i<adventure_upgrades.length; i++) {
+					let upgrade = adventure_upgrades[i];
+					s += "<div class=\"upgrade noselect\" id=\"adventure_upgrade_"+i+"\" onClick=\"upgrade_adventure(game,"+i+");\">";
+					s += upgrade.name;
+					s += "</div>"
+				}
+				document.getElementById("adventure_upgrades").innerHTML = s;
+			}
+			
+			previousFrame = now;
+			window.requestAnimationFrame(frame);
+		}
+		
+		function spawnMonster() {
+			game.current_enemy = structuredClone(enemies[Math.floor(Math.random() * enemies.length)]);
+			game.current_enemy.img = loadImage(game.current_enemy.img);
+		
+			
+			game.enemy_cooldown = 0;
+		}
+		
+		function paintGarden(game) {
+			var ctx = document.getElementById("garden").getContext("2d");
+			//garden.width = gardenWidth*32;
+			//garden.height = gardenHeight*32;
+			for(var y=0; y<gardenHeight; y++) {
+				for(var x=0; x<gardenWidth; x++) {
+					ctx.drawImage(dirt, x*32, y*32);
+				}
+			}
+		}
+		
+		
+		
+		window.requestAnimationFrame(frame);
+		
+		
+		
+		
+		</script>
+	</body>
+</html>
