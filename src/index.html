@@ -10,20 +10,37 @@
 			-ms-interpolation-mode: nearest-neighbor;
 		}
 		
-		.grid {
-			display: grid;
-			grid-template-columns: repeat(auto-fill, minmax(384px, 1fr));
-			grid-column-gap: 10px;
+		body {
+			color: #999;
+			background-color: #333;
+			margin: 0px;
+			padding: 0px;
 		}
 		
 		.section {
-			border: 3px solid #00F;
-			max-width: 384px;
-			margin-left: 10px;
-			margin-right: 10px;
+			color: #000;
+			background-color: #888;
+			width: 384px;
+			margin-left: auto;
+			margin-right: auto;
 			padding-left: 0px;
 			padding-right: 0px;
-			width: 1fr;
+			padding-bottom: 4px;
+		}
+		
+		.items {
+			color: #000;
+			background-color: #FFF;
+			width: 384px;
+			margin-left: auto;
+			margin-right: auto;
+		}
+		
+		.item {
+			display: inline;
+			width: 64px;
+			margin-left: 4px;
+			margin-right: 4px;
 		}
 		
 		.fakebutton {
@@ -46,20 +63,28 @@
 			border: 1px solid #000;
 			margin: 2px;
 			padding: 2px;
+			background-color: #fff;
+		}
+		
+		.tabs {
+			width: 133px;
+			margin-left: auto;
+			margin-right: auto;
 		}
 		</style>
 	</head>
 	<body>
-		<p>Ludum Dare 52: Untitled Harvest Game</p>
+		<div class="items" id="items">
 		
-		<div class="grid">
-		
-		<div class="section" id="adventure_section">
-		<canvas class="noselect" id="adventure"  width=384, height=384, style="width: 384px; height: 384px; background-color: #000;" onClick = "attack(game);">
-		</canvas>
-		<div class="noselect fakebutton" onClick="attack(game);">(tap to attack)</div>
-		<div id="adventure_upgrades">
 		</div>
+		<div class="section" id="adventure_section">
+			<canvas class="noselect" id="adventure"  width=384, height=384, style="width: 384px; height: 384px; background-color: #000;" onClick = "attack(game);"></canvas>
+			<div id="main_tabs" class="tabs noselect" style="display:none">
+				<div class="noselect fakebutton" id="garden_button" style="display:inline"><img src="data/button_adventure_disabled.png"/></div>
+				<div class="noselect fakebutton" id="garden_button" onClick="tab('garden');" style="display:inline"><img src="data/button_garden.png"/></div>
+			</div>
+			<!--div class="noselect fakebutton" onClick="attack(game);">(tap to attack)</div-->
+			<div id="adventure_upgrades"></div>
 		</div>
 		
 		
@@ -67,15 +92,16 @@
 			
 			<canvas id="garden" width=384, height=384, style="width: 384px; height: 384px; background-color: #000;">
 			</canvas>
-			
-			
+			<div class="tabs noselect">
+				<div class="noselect fakebutton" id="adventure_button" onClick="tab('adventure');" style="display:inline"><img src="data/button_adventure.png"/></div>
+				<div class="noselect fakebutton" id="garden_button" style="display:inline"><img src="data/button_garden_disabled.png"/></div>
+			</div>
 		</div>
 		
-		
-		</div>
 		
 		<script src='https://cdn.jsdelivr.net/npm/bignumber.js@9.1.0/bignumber.min.js'></script>
 		<script type="text/javascript" src="adventure.js"></script>
+		<script type="text/javascript" src="garden.js"></script>
 		<script>
 		const ticks_per_second = 20;
 		const msec_per_tick = 1000 / ticks_per_second;
@@ -87,7 +113,7 @@
 		var ticksSinceSave = -1;
 		
 		function loadImage(src) {
-			//TODO: Will painting throw an error before the image is loaded? If not idc.
+			//TODO: Will painting throw an error before the image is loaded? If not idk.
 			var result = new Image();
 			result.src = src;
 			return result;
@@ -99,24 +125,42 @@
 		
 		//GAME
 		
+		var item_names = {
+			"coin": "Coins",
+			"seed_aconitum": "Aconitum Seeds",
+			"seed_dionaea": "Dionaea Seeds",
+			"seed_porcelain": "Porcelain Mushroom Spores",
+			"seed_devilstooth": "Devil's Tooth Mushroom Spores",
+			"item_thorn": "Dionaea Thorn",
+			"item_poison": "Wolfsbane Poison",
+			"item_ichor": "Ichor",
+			"item_shard": "Porcelain Shard",
+		};
+		
 		var game = {
-			"current_enemy": {
-				"name": "Dionaea",
-				"img": loadImage("data/enemy_plant.png"),
-				"hp": 20,
-				"maxhp": 20
-			},
-			"enemy_cooldown": 0,
+			"current_enemy": null,
+			"enemy_cooldown": 1,
 			"enemy_cooldown_max": 1000, //msec
 			"attack_cooldown_max": 150, //msec
 			"player": {
+				"unlocks": [],
 				"attack": 1,
 				"attack_cooldown": 0,
 				"dpt": 0,
-				"upgrade_levels": []
+				"upgrade_levels": [],
+				"items": {}
 			}
 		};
 		
+		function refreshItems() {
+			if (game.player.items === undefined) game.player.items = {};
+			
+			var s = "";
+			for(const [key, value] of Object.entries(game.player.items)) {
+				s += "<div class=\"item noselect\" title=\""+item_names[key]+"\"><img src=\"data/item_"+key+".png\"/>"+value+"</div>";
+			}
+			document.getElementById("items").innerHTML = s;
+		}
 		
 		
 		function load() {
@@ -124,6 +168,17 @@
 				let saveObject = JSON.parse(window.localStorage.getItem("save"));
 				if (saveObject != null) {
 					game.player = saveObject.player;
+					
+					if (!('unlocks' in game.player)) game.player.unlocks = [];
+					for(let i=0; i<game.player.unlocks.length; i++) {
+						let unlock = game.player.unlocks[i];
+						if (unlock=="garden") {
+							unlockAdventure(game, "garden");
+							//document.getElementById("main_tabs").style.display = "block";
+						}
+					}
+					
+					refreshItems();
 				} else {
 					console.log("Save data was null.");
 				}
@@ -154,32 +209,14 @@
 				}
 			}
 		
-		
-			if (game.current_enemy != null) {
-				game.current_enemy.hp =  Math.max(game.current_enemy.hp - game.player.dpt, 0);
-				
-				if (game.current_enemy.hp <= 0) {
-					game.current_enemy = null;
-					game.enemy_cooldown = game.enemy_cooldown_max;
-				}
-			}
+			tickAdventure(game);
 		}
 		
 		function frame(now) {
 			if (previousFrame !== undefined) {
 				const elapsed = now - previousFrame;
 				
-				if (game.player.attack_cooldown > 0) {
-					game.player.attack_cooldown = Math.max(game.player.attack_cooldown - elapsed, 0);
-				}
-				
-				if (game.enemy_cooldown > 0) {
-					game.enemy_cooldown = Math.max(game.enemy_cooldown - elapsed, 0);
-					
-					if (game.enemy_cooldown <= 0) {
-						spawnMonster();
-					}
-				}
+				frameAdventure(game, elapsed);
 				
 				tickBuffer += elapsed;
 				var ticksThisRound = 0;
@@ -212,31 +249,20 @@
 			window.requestAnimationFrame(frame);
 		}
 		
-		function spawnMonster() {
-			game.current_enemy = structuredClone(enemies[Math.floor(Math.random() * enemies.length)]);
-			game.current_enemy.img = loadImage(game.current_enemy.img);
-		
-			
-			game.enemy_cooldown = 0;
-		}
-		
-		function paintGarden(game) {
-			var ctx = document.getElementById("garden").getContext("2d");
-			//garden.width = gardenWidth*32;
-			//garden.height = gardenHeight*32;
-			for(var y=0; y<gardenHeight; y++) {
-				for(var x=0; x<gardenWidth; x++) {
-					ctx.drawImage(dirt, x*32, y*32);
-				}
+		function tab(name) {
+			if (name=="garden") {
+				document.getElementById("adventure_section").style.display = "none";
+				document.getElementById("garden_section").style.display = "block";
+			} else if (name=="adventure") {
+				document.getElementById("adventure_section").style.display = "block";
+				document.getElementById("garden_section").style.display = "none";
+			} else {
+				console.log("CANNOT FIND TAB '"+name+"'!");
 			}
 		}
 		
 		
-		
 		window.requestAnimationFrame(frame);
-		
-		
-		
 		
 		</script>
 	</body>

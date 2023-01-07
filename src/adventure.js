@@ -104,16 +104,19 @@ var all_enemies = [
 
 var enemies = all_enemies; //TODO: How do we want to unlock new enemies? Battle power?
 
+var particles = []; //TODO: Particle instances, including monster splats and dropped items
+
 function attack(game) {
 	if (game.player.attack_cooldown <= 0 && game.current_enemy!=null) {
 		//console.log("Attack!");
 		
 		game.current_enemy.hp = Math.max(game.current_enemy.hp - game.player.attack, 0);
 		if (game.current_enemy.hp <= 0) {
-			//TODO: Trigger enemy reward and particle splash
 			
-			game.current_enemy = null;
-			game.enemy_cooldown = game.enemy_cooldown_max;
+			killEnemy(game);
+			
+			//game.current_enemy = null;
+			//game.enemy_cooldown = game.enemy_cooldown_max;
 		}
 		
 		game.player.attack_cooldown = game.attack_cooldown_max;
@@ -123,11 +126,47 @@ function attack(game) {
 	
 }
 
+function killEnemy(game) {
+	var enemy = game.current_enemy;
+	game.current_enemy = null;
+	game.enemy_cooldown = game.enemy_cooldown_max;
+	
+	//console.log(enemy);
+	var rewards = enemy.rewards;
+	var droppedAnything = false;
+	for(const reward of enemy.rewards) {
+		//Should it drop?
+		
+		if (Math.random() < reward.chance) {
+			//How many should drop? - force these to be integers!
+			const range = (reward.max - reward.min) | 0;
+			const count = (Math.random() * range + reward.min) | 0;
+			
+			const existing = (reward.item in game.player.items) ? game.player.items[reward.item] : 0;
+			game.player.items[reward.item] = existing + count;
+			droppedAnything = true;
+			//console.log("Awarded "+count+" of "+reward.item+" for victory.");
+		}
+	}
+	
+	if (droppedAnything) refreshItems();
+}
+
 function upgrade_cost(index, level) {
 	let upgrade = adventure_upgrades[index]; if (upgrade===null || upgrade===undefined) return 1;
 	let baseCost = upgrade.base_cost; if (baseCost===undefined) baseCost = 1.0;
 	let scaleCost = upgrade.scale_cost; if (scaleCost===undefined) scaleCost = 1.0;
 	return Math.pow(2, level) * scaleCost + baseCost;
+}
+
+function itemCount(game, id) {
+	let items = game.player.items;
+	if (items===undefined) return 0;
+	if (id in items) {
+		return items[id];
+	} else {
+		return 0;
+	}
 }
 
 function upgrade_adventure(game, index) {
@@ -141,6 +180,16 @@ function upgrade_adventure(game, index) {
 	let curLevel = game.player.upgrade_levels[index];
 	if (curLevel===undefined) curLevel = 0;
 	let nextCost = upgrade_cost(index, curLevel+1);
+	
+	let existingItems = itemCount(game, upgrade.currency);
+	console.log("Existing "+upgrade.currency+" count: "+existingItems);
+	if (existingItems < nextCost) {
+		console.log("Not enough "+upgrade.currency+" to purchase upgrade (need "+nextCost+").");
+		return;
+	} else {
+		game.player.items[upgrade.currency] = existingItems - nextCost;
+		refreshItems();
+	}
 	//console.log("Cost: "+nextCost);
 	
 	switch(upgrade.key) {
@@ -154,6 +203,23 @@ function upgrade_adventure(game, index) {
 	}
 	
 	game.player.upgrade_levels[index] = curLevel+1;
+}
+
+/**
+ * Note: Does not push the unlock onto the player's unlock list!
+ */
+function unlockAdventure(game, item) {
+	if (item=="garden") {
+		document.getElementById("main_tabs").style.display = "block";
+	}
+}
+
+function spawnMonster(game) {
+	game.current_enemy = structuredClone(enemies[Math.floor(Math.random() * enemies.length)]);
+	game.current_enemy.img = loadImage(game.current_enemy.img); //TODO: Figure out better inheritance for this
+
+	
+	game.enemy_cooldown = 0;
 }
 
 function paintAdventure(game) {
@@ -192,5 +258,40 @@ function paintAdventure(game) {
 		ctx.shadowOffsetY = 1;
 		ctx.fillStyle = "rgb( 235, 233, 174 )";
 		ctx.fillText(game.current_enemy.name, barLeft, 192 - ehit - 12);
+		
+		//TODO: Monster splats, dropped items
+	}
+}
+
+/**
+ * Runs smooth update logic that happens every single frame, like cooldowns.
+ */
+function frameAdventure(game, elapsed) {
+	if (game.player.attack_cooldown > 0) {
+		game.player.attack_cooldown = Math.max(game.player.attack_cooldown - elapsed, 0);
+	}
+	
+	if (game.enemy_cooldown > 0) {
+		game.enemy_cooldown = Math.max(game.enemy_cooldown - elapsed, 0);
+		
+		if (game.enemy_cooldown <= 0) {
+			spawnMonster(game);
+		}
+	}
+}
+
+/**
+ * Runs discrete update logic that runs at the same speed all the time. This is
+ * the bulk of the logic in adventure.
+ */
+function tickAdventure(game) {
+	if (game.current_enemy != null) {
+		game.current_enemy.hp =  Math.max(game.current_enemy.hp - game.player.dpt, 0);
+		
+		if (game.current_enemy.hp <= 0) {
+			killEnemy(game);
+			//game.current_enemy = null;
+			//game.enemy_cooldown = game.enemy_cooldown_max;
+		}
 	}
 }
