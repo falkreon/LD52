@@ -1,6 +1,7 @@
 var adventure_upgrades = [
 	{
 		"name": "Test Strength",
+		"caption": "Attack Damage +",
 		"key": "damage",
 		"amount": 1,
 		"currency": "coin",
@@ -10,6 +11,7 @@ var adventure_upgrades = [
 	},
 	{
 		"name": "Test Dps",
+		"caption": "Damage Per Second +",
 		"key": "dps",
 		"amount": 0.5,
 		"currency": "coin",
@@ -145,6 +147,14 @@ function killEnemy(game) {
 			const existing = (reward.item in game.player.items) ? game.player.items[reward.item] : 0;
 			game.player.items[reward.item] = existing + count;
 			droppedAnything = true;
+			
+			if (reward.item.startsWith("seed_")) {
+				//Check to see if player has the garden unlock and add it
+				if (!game.player.unlocks.includes("garden")) {
+					game.player.unlocks.push("garden");
+					unlockAdventure(game, "garden");
+				}
+			}
 			//console.log("Awarded "+count+" of "+reward.item+" for victory.");
 		}
 	}
@@ -153,7 +163,7 @@ function killEnemy(game) {
 }
 
 function upgrade_cost(index, level) {
-	let upgrade = adventure_upgrades[index]; if (upgrade===null || upgrade===undefined) return 1;
+	let upgrade = adventure_upgrades[index]; if (upgrade===null || upgrade===undefined) return 0;
 	let baseCost = upgrade.base_cost; if (baseCost===undefined) baseCost = 1.0;
 	let scaleCost = upgrade.scale_cost; if (scaleCost===undefined) scaleCost = 1.0;
 	return Math.pow(2, level) * scaleCost + baseCost;
@@ -182,13 +192,14 @@ function upgrade_adventure(game, index) {
 	let nextCost = upgrade_cost(index, curLevel+1);
 	
 	let existingItems = itemCount(game, upgrade.currency);
-	console.log("Existing "+upgrade.currency+" count: "+existingItems);
+	//console.log("Existing "+upgrade.currency+" count: "+existingItems);
 	if (existingItems < nextCost) {
 		console.log("Not enough "+upgrade.currency+" to purchase upgrade (need "+nextCost+").");
 		return;
 	} else {
 		game.player.items[upgrade.currency] = existingItems - nextCost;
 		refreshItems();
+		refreshUpgrades();
 	}
 	//console.log("Cost: "+nextCost);
 	
@@ -259,7 +270,7 @@ function paintAdventure(game) {
 		ctx.fillStyle = "rgb( 235, 233, 174 )";
 		ctx.fillText(game.current_enemy.name, barLeft, 192 - ehit - 12);
 		
-		//TODO: Monster splats, dropped items
+		//TODO: Monster splats, dropped items, floating damage text
 	}
 }
 

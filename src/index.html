@@ -41,6 +41,7 @@
 			width: 64px;
 			margin-left: 4px;
 			margin-right: 4px;
+			white-space: nowrap;
 		}
 		
 		#seed_select {
@@ -124,12 +125,76 @@
 		}
 		
 		.upgrade {
+			font-family: sans-serif;
 			width: 376;
+			height: 60px;
 			text-align: left;
-			border: 1px solid #000;
+			color: #444;
+			background-color: #999;
+			border: 1px solid #777;
+			border-radius: 6px 6px;
+			box-shadow: 2px 2px 1px rgba(0, 0, 0, 0.25);
 			margin: 2px;
+			margin-bottom: 6px;
 			padding: 2px;
-			background-color: #fff;
+			position: relative;
+		}
+
+		.upgrade h1 {
+			display: inline-block;
+			font-size: 12pt;
+			font-style: bold;
+			position: absolute;
+			left: 48px;
+			top: -8px;
+		}
+
+		.upgrade p {
+			_border: 1px solid #000;
+			font-size: 10pt;
+			font-style: italic;
+			
+			position: absolute;
+			left: 48px;
+			top: 14px;
+			width: 300px;
+			height: 32px
+		}
+
+		.upgrade_specifics {
+			font-weight: bold;
+			color: #00C;
+		}
+
+		.upgrade_cost {
+			text-align: right;
+			font-weight: bold;
+			color: #400;
+			text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.25);
+		}
+
+		.upgrade.enabled {
+			color: #000;
+			border: 1px solid #000;
+			background-color: #FFF;
+		}
+
+		.upgrade_count {
+			display: inline-block;
+			position: absolute;
+			top: 5px;
+			width: 40px;
+			height: 40px;
+			_border: 1px solid #000;
+			margin-top: 1px;
+			
+			font-size: 18pt;
+			font-weight: bold;
+			text-align: center;
+		}
+
+		.enabled .upgrade_cost {
+			color: #070;
 		}
 		
 		.tabs {
@@ -156,7 +221,7 @@
 		
 		<div class="section" id="garden_section" style="display: none;">
 			
-			<canvas id="garden" width=384, height=384, style="width: 384px; height: 384px; background-color: #000;" onClick="selectPot(event);">
+			<canvas id="garden" width=384, height=384, style="width: 384px; height: 384px; background-color: #000;" onClick="selectPot(event, game);">
 			</canvas>
 			<div class="tabs noselect">
 				<div class="noselect fakebutton" id="adventure_button" onClick="tab('adventure');" style="display:inline"><img src="data/button_adventure.png"/></div>
@@ -246,29 +311,73 @@
 				
 				if (key.startsWith("seed")) {
 					var gardenSeedButton = document.getElementById(key);
-					if (gardenSeedButton!== undefined && gardenSeedButton!==null) gardenSeedButton.style.display = "inline-block";
+					if (value>0) {
+						if (gardenSeedButton!== undefined && gardenSeedButton!==null) gardenSeedButton.style.display = "inline-block";
+					}
 				}
 			}
 			document.getElementById("items").innerHTML = s;
 		}
 		
+		function refreshUpgrades() {
+			for(var i=0; i<adventure_upgrades.length; i++) {
+				let upgrade = adventure_upgrades[i];
+				let level = (game.player.upgrade_levels[i]!==undefined) ? game.player.upgrade_levels[i] : 0;
+				
+				document.getElementById("upgrade_count_"+i).innerHTML = level;
+				
+				let costString = ""+upgrade_cost(i, level+1)+"<img src='data/item_"+upgrade.currency+".png'/>"
+				document.getElementById("upgrade_cost_"+i).innerHTML = costString;
+			}
+		}
+		
+		function reward(rewards) {
+			if (rewards===undefined) return;
+			
+			var droppedAnything = false;
+			for(const reward of rewards) {
+				//Should it drop?
+			
+				if (Math.random() < reward.chance) {
+					//How many should drop? - force these to be integers!
+					const range = (reward.max - reward.min) | 0;
+					const count = (Math.random() * range + reward.min) | 0;
+					
+					const existing = (reward.item in game.player.items) ? game.player.items[reward.item] : 0;
+					game.player.items[reward.item] = existing + count;
+					droppedAnything = true;
+					
+					if (reward.item.startsWith("seed_")) {
+						//Check to see if player has the garden unlock and add it
+						if (!game.player.unlocks.includes("garden")) {
+							game.player.unlocks.push("garden");
+							unlockAdventure(game, "garden");
+						}
+					}
+					//console.log("Awarded "+count+" of "+reward.item+" for victory.");
+				}
+			}
+			
+			if (droppedAnything) refreshItems();
+		}
 		
 		function load() {
 			if (window.localStorage.length>0) {
 				let saveObject = JSON.parse(window.localStorage.getItem("save"));
 				if (saveObject != null) {
 					game.player = saveObject.player;
+					game.garden = saveObject.garden;
 					
 					if (!('unlocks' in game.player)) game.player.unlocks = [];
 					for(let i=0; i<game.player.unlocks.length; i++) {
 						let unlock = game.player.unlocks[i];
 						if (unlock=="garden") {
 							unlockAdventure(game, "garden");
-							//document.getElementById("main_tabs").style.display = "block";
 						}
 					}
 					
 					refreshItems();
+					refreshUpgrades();
 				} else {
 					console.log("Save data was null.");
 				}
@@ -280,6 +389,7 @@
 		function save() {
 			let saveObject = {};
 			saveObject.player = game.player;
+			saveObject.garden = game.garden;
 			
 			let saveString = JSON.stringify(saveObject);
 			localStorage.setItem("save", saveString);
@@ -300,6 +410,7 @@
 			}
 		
 			tickAdventure(game);
+			tickGarden(game);
 		}
 		
 		function frame(now) {
@@ -314,7 +425,10 @@
 					tickBuffer -= msec_per_tick;
 					tick();
 					ticksThisRound++;
-					if (ticksThisRound>3) break;
+					if (ticksThisRound>3) {
+						tickBuffer %= msec_per_tick;
+						break;
+					}
 				}
 				
 				paintGarden(game);
@@ -328,9 +442,16 @@
 				var s = "";
 				for(var i=0; i<adventure_upgrades.length; i++) {
 					let upgrade = adventure_upgrades[i];
-					s += "<div class=\"upgrade noselect\" id=\"adventure_upgrade_"+i+"\" onClick=\"upgrade_adventure(game,"+i+");\">";
-					s += upgrade.name;
+					let level = (game.player.upgrade_levels[i]!==undefined) ? game.player.upgrade_levels[i] : 0;
+					
+					s += "<div class='upgrade noselect' onClick='upgrade_adventure(game, "+i+");'><div class='upgrade_count' id='upgrade_count_"+i+"'>"+level+"</div><h1>"+upgrade.name+"</h1>";
+					s += "<p>"+upgrade.caption+"<span class='upgrade_specifics' id='upgrade_specifics_"+i+"'>"+upgrade.amount+"</span></p>";
+					s += "<div class='upgrade_cost' id='upgrade_cost_"+i+"'>"+upgrade_cost(i, level+1)+"<img src='data/item_"+upgrade.currency+".png'/></div>";
 					s += "</div>"
+					
+					//s += "<div class=\"upgrade noselect\" id=\"adventure_upgrade_"+i+"\" onClick=\"upgrade_adventure(game,"+i+");\">";
+					//s += upgrade.name;
+					//s += "</div>"
 				}
 				document.getElementById("adventure_upgrades").innerHTML = s;
 			}
