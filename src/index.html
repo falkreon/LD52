@@ -43,6 +43,72 @@
 			margin-right: 4px;
 		}
 		
+		#seed_select {
+			width: 384px;
+			text-align: center;
+		}
+		
+		.seed {
+			display: inline-block;
+			width: 80px;
+			height: 80px;
+			border: 1px solid #444;
+			border-radius: 4px 4px;
+			background-color: #AAA;
+			text-align: center;
+			vertical-align: middle;
+			
+			margin-left: 1px;
+			margin-right: 1px;
+			box-shadow: 2px 2px 1px rgba(0, 0, 0, 0.25);
+		}
+		
+		.seed > img {
+			position: relative;
+			top: 50%;
+			transform: translateY(-50%);
+			
+			width: 32px;
+			height: 32px;
+			image-rendering: crisp-edges;
+		}
+		
+		.seed.selected {
+			border:2px solid #6F6;
+		}
+		
+		.rel_wrapper {
+			position: relative;
+			height: 0px;
+			width: 384px;
+		}
+		
+		#seed_info {
+			position: absolute;
+			width: 360px;
+			height: 128px;
+			left: 2px;
+			top: -128px;
+			margin-left: auto;
+			margin-right: auto;
+			background-color: #ba9b80;
+			border: solid 2px #000;
+			border-radius: 6px 6px;
+			
+			padding-top: 2px;
+			padding-bottom: 2px;
+			padding-left: 6px;
+			padding-right: 6px;
+			vertical-align: top;
+			
+			font-size: 10pt;
+			font-style: italic;
+		}
+		
+		#seed_info_x {
+			float:right;
+		}
+		
 		.fakebutton {
 			text-align: center;
 			font-size: 20pt;
@@ -90,11 +156,24 @@
 		
 		<div class="section" id="garden_section" style="display: none;">
 			
-			<canvas id="garden" width=384, height=384, style="width: 384px; height: 384px; background-color: #000;">
+			<canvas id="garden" width=384, height=384, style="width: 384px; height: 384px; background-color: #000;" onClick="selectPot(event);">
 			</canvas>
 			<div class="tabs noselect">
 				<div class="noselect fakebutton" id="adventure_button" onClick="tab('adventure');" style="display:inline"><img src="data/button_adventure.png"/></div>
 				<div class="noselect fakebutton" id="garden_button" style="display:inline"><img src="data/button_garden_disabled.png"/></div>
+			</div>
+			<div class="rel_wrapper">
+				<div id="seed_info" style="display: none;">
+					<p id="seed_info_tip">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Proin nulla mauris, imperdiet sit amet tortor a, viverra fermentum sapien.</p>
+					<div id="seed_info_x" class="noselect fakebutton" onClick="deselectSeed();"><img src="data/x.png"/></div>
+				</div>
+			</div>
+			<br/>
+			<div id="seed_select">
+				<div class="seed noselect" id="seed_dionaea" onClick="selectSeed('seed_dionaea');"><img src="data/item_seed_dionaea.png"></div>
+				<div class="seed noselect" id="seed_aconitum" onClick="selectSeed('seed_aconitum');"><img src="data/item_seed_aconitum.png"></div>
+				<div class="seed noselect" id="seed_porcelain" onClick="selectSeed('seed_porcelain');"><img src="data/item_seed_porcelain.png"></div>
+				<div class="seed noselect" id="seed_devilstooth" onClick="selectSeed('seed_devilstooth');"><img src="data/item_seed_devilstooth.png"></div>
 			</div>
 		</div>
 		
@@ -149,15 +228,26 @@
 				"dpt": 0,
 				"upgrade_levels": [],
 				"items": {}
-			}
+			},
+			"garden": [ null, null, null, null ]
 		};
 		
 		function refreshItems() {
 			if (game.player.items === undefined) game.player.items = {};
 			
+			document.getElementById("seed_dionaea").style.display = "none";
+			document.getElementById("seed_aconitum").style.display = "none";
+			document.getElementById("seed_porcelain").style.display = "none";
+			document.getElementById("seed_devilstooth").style.display = "none";
+			
 			var s = "";
 			for(const [key, value] of Object.entries(game.player.items)) {
 				s += "<div class=\"item noselect\" title=\""+item_names[key]+"\"><img src=\"data/item_"+key+".png\"/>"+value+"</div>";
+				
+				if (key.startsWith("seed")) {
+					var gardenSeedButton = document.getElementById(key);
+					if (gardenSeedButton!== undefined && gardenSeedButton!==null) gardenSeedButton.style.display = "inline-block";
+				}
 			}
 			document.getElementById("items").innerHTML = s;
 		}
