@@ -145,7 +145,7 @@
 			font-size: 12pt;
 			font-style: bold;
 			position: absolute;
-			left: 48px;
+			left: 64px;
 			top: -8px;
 		}
 
@@ -155,7 +155,7 @@
 			font-style: italic;
 			
 			position: absolute;
-			left: 48px;
+			left: 64px;
 			top: 14px;
 			width: 300px;
 			height: 32px
@@ -202,11 +202,24 @@
 			margin-left: auto;
 			margin-right: auto;
 		}
+		
+		.bgm {
+			width: 32px;
+			height: 32px;
+			_background-color: #FFF;
+			_border: 1px solid #000;
+			margin-left: auto;
+			margin-right: 0;
+		}
 		</style>
 	</head>
-	<body>
+	<body onLoad="window.requestAnimationFrame(frame);">
+		<audio id="bgm" src=""></audio>
 		<div class="items" id="items">
 		
+		</div>
+		<div class="rel_wrapper" style="margin-left: auto; margin-right: auto; width:384px; text-align:right;">
+		<div class="noselect fakebutton bgm" id="bgm"><img id="bgm_icon" src="data/bgm.png" draggable=false/></div>
 		</div>
 		<div class="section" id="adventure_section">
 			<canvas class="noselect" id="adventure"  width=384, height=384, style="width: 384px; height: 384px; background-color: #000;" onClick = "attack(game);"></canvas>
@@ -235,10 +248,10 @@
 			</div>
 			<br/>
 			<div id="seed_select">
-				<div class="seed noselect" id="seed_dionaea" onClick="selectSeed('seed_dionaea');"><img src="data/item_seed_dionaea.png"></div>
-				<div class="seed noselect" id="seed_aconitum" onClick="selectSeed('seed_aconitum');"><img src="data/item_seed_aconitum.png"></div>
-				<div class="seed noselect" id="seed_porcelain" onClick="selectSeed('seed_porcelain');"><img src="data/item_seed_porcelain.png"></div>
-				<div class="seed noselect" id="seed_devilstooth" onClick="selectSeed('seed_devilstooth');"><img src="data/item_seed_devilstooth.png"></div>
+				<div class="seed noselect" id="seed_dionaea" onClick="selectSeed('seed_dionaea');"><img src="data/item_seed_dionaea.png" draggable="false"></div>
+				<div class="seed noselect" id="seed_aconitum" onClick="selectSeed('seed_aconitum');"><img src="data/item_seed_aconitum.png" draggable="false"></div>
+				<div class="seed noselect" id="seed_porcelain" onClick="selectSeed('seed_porcelain');"><img src="data/item_seed_porcelain.png" draggable="false"></div>
+				<div class="seed noselect" id="seed_devilstooth" onClick="selectSeed('seed_devilstooth');"><img src="data/item_seed_devilstooth.png" draggable="false"></div>
 			</div>
 		</div>
 		
@@ -323,11 +336,26 @@
 			for(var i=0; i<adventure_upgrades.length; i++) {
 				let upgrade = adventure_upgrades[i];
 				let level = (game.player.upgrade_levels[i]!==undefined) ? game.player.upgrade_levels[i] : 0;
+				let cost = upgrade_cost(i, level+1);
 				
-				document.getElementById("upgrade_count_"+i).innerHTML = level;
+				if (level==upgrade.max) {
+					document.getElementById("upgrade_count_"+i).innerHTML = "Max";
+				} else {
+					document.getElementById("upgrade_count_"+i).innerHTML = level;
+				}
 				
-				let costString = ""+upgrade_cost(i, level+1)+"<img src='data/item_"+upgrade.currency+".png'/>"
+				let costString = ""+cost+"<img src='data/item_"+upgrade.currency+".png'/>"
 				document.getElementById("upgrade_cost_"+i).innerHTML = costString;
+				
+				let existing = (upgrade.currency in game.player.items) ? game.player.items[upgrade.currency] : 0;
+				let enable = existing >= cost && level < upgrade.max;
+				
+				let div = document.getElementById("upgrade_"+i);
+				if (enable) {
+					if (!div.classList.contains("enabled")) div.classList.add("enabled");
+				} else {
+					if (div.classList.contains("enabled")) div.classList.remove("enabled");
+				}
 			}
 		}
 		
@@ -444,7 +472,7 @@
 					let upgrade = adventure_upgrades[i];
 					let level = (game.player.upgrade_levels[i]!==undefined) ? game.player.upgrade_levels[i] : 0;
 					
-					s += "<div class='upgrade noselect' onClick='upgrade_adventure(game, "+i+");'><div class='upgrade_count' id='upgrade_count_"+i+"'>"+level+"</div><h1>"+upgrade.name+"</h1>";
+					s += "<div class='upgrade noselect' id='upgrade_"+i+"' onClick='upgrade_adventure(game, "+i+");'><div class='upgrade_count' id='upgrade_count_"+i+"'>"+level+"</div><h1>"+upgrade.name+"</h1>";
 					s += "<p>"+upgrade.caption+"<span class='upgrade_specifics' id='upgrade_specifics_"+i+"'>"+upgrade.amount+"</span></p>";
 					s += "<div class='upgrade_cost' id='upgrade_cost_"+i+"'>"+upgrade_cost(i, level+1)+"<img src='data/item_"+upgrade.currency+".png'/></div>";
 					s += "</div>"
@@ -473,7 +501,7 @@
 		}
 		
 		
-		window.requestAnimationFrame(frame);
+		
 		
 		</script>
 	</body>

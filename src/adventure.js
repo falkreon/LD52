@@ -1,24 +1,64 @@
 var adventure_upgrades = [
 	{
-		"name": "Test Strength",
+		"name": "Weapon Power",
 		"caption": "Attack Damage +",
 		"key": "damage",
 		"amount": 1,
 		"currency": "coin",
 		"base_cost": 1,
 		"scale_cost": 1.0,
-		"max": 20
+		"max": 5
 	},
 	{
-		"name": "Test Dps",
+		"name": "Weapon Bleed",
 		"caption": "Damage Per Second +",
 		"key": "dps",
 		"amount": 0.5,
 		"currency": "coin",
-		"base_cost": 20,
+		"base_cost": 10,
 		"scale_cost": 1.0,
-		"max": 20
-	}
+		"max": 5
+	},
+	{
+		"name": "Sharper Weapon",
+		"caption": "Attack Damage +",
+		"key": "damage",
+		"amount": 2,
+		"currency": "item_thorn",
+		"base_cost": 3,
+		"scale_cost": 1.0,
+		"max": 5
+	},
+	{
+		"name": "Poison Blade",
+		"caption": "Damage Per Second +",
+		"key": "dps",
+		"amount": 1,
+		"currency": "item_poison",
+		"base_cost": 3,
+		"scale_cost": 1.0,
+		"max": 5
+	},
+	{
+		"name": "Even Sharper Weapon",
+		"caption": "Attack Damage +",
+		"key": "damage",
+		"amount": 10,
+		"currency": "item_shard",
+		"base_cost": 3,
+		"scale_cost": 1.0,
+		"max": 5
+	},
+	{
+		"name": "Deadly Poison",
+		"caption": "Damage Per Second +",
+		"key": "dps",
+		"amount": 6,
+		"currency": "item_ichor",
+		"base_cost": 3,
+		"scale_cost": 1.0,
+		"max": 5
+	},
 ];
 
 var all_enemies = [
@@ -159,7 +199,10 @@ function killEnemy(game) {
 		}
 	}
 	
-	if (droppedAnything) refreshItems();
+	if (droppedAnything) {
+		refreshItems();
+		refreshUpgrades();
+	}
 }
 
 function upgrade_cost(index, level) {
@@ -193,13 +236,12 @@ function upgrade_adventure(game, index) {
 	
 	let existingItems = itemCount(game, upgrade.currency);
 	//console.log("Existing "+upgrade.currency+" count: "+existingItems);
-	if (existingItems < nextCost) {
-		console.log("Not enough "+upgrade.currency+" to purchase upgrade (need "+nextCost+").");
+	if (existingItems < nextCost || curLevel>=upgrade.max) {
+		//console.log("Not enough "+upgrade.currency+" to purchase upgrade (need "+nextCost+").");
 		return;
 	} else {
 		game.player.items[upgrade.currency] = existingItems - nextCost;
 		refreshItems();
-		refreshUpgrades();
 	}
 	//console.log("Cost: "+nextCost);
 	
@@ -214,6 +256,8 @@ function upgrade_adventure(game, index) {
 	}
 	
 	game.player.upgrade_levels[index] = curLevel+1;
+	
+	refreshUpgrades();
 }
 
 /**
