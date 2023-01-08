@@ -213,13 +213,13 @@
 		}
 		</style>
 	</head>
-	<body onLoad="window.requestAnimationFrame(frame);">
-		<audio id="bgm" src=""></audio>
+	<body onLoad="begin();">
+		<audio id="bgm" volume="0.2" src="data/harvest.ogg" repeat></audio>
 		<div class="items" id="items">
 		
 		</div>
 		<div class="rel_wrapper" style="margin-left: auto; margin-right: auto; width:384px; text-align:right;">
-		<div class="noselect fakebutton bgm" id="bgm"><img id="bgm_icon" src="data/bgm.png" draggable=false/></div>
+		<div class="noselect fakebutton bgm" id="bgm_div"><img id="bgm_icon" src="data/bgm.png" draggable=false onClick="toggleBgm();"/></div>
 		</div>
 		<div class="section" id="adventure_section">
 			<canvas class="noselect" id="adventure"  width=384, height=384, style="width: 384px; height: 384px; background-color: #000;" onClick = "attack(game);"></canvas>
@@ -268,6 +268,30 @@
 		var previousFrame = undefined;
 		var tickBuffer = 0;
 		var ticksSinceSave = -1;
+		var bgm_active = true;
+		
+		function begin() {
+			var bgm = document.getElementById("bgm");
+			bgm.volume = 0.2;
+			bgm.loop = true;
+			bgm.play();
+			
+			window.requestAnimationFrame(frame);
+		}
+		
+		function toggleBgm() {
+			var bgm = document.getElementById("bgm");
+			if (!bgm_active) {
+				bgm.src = "data/harvest.ogg";
+				bgm.play();
+				bgm_active = true;
+				document.getElementById("bgm_icon").src="data/bgm.png";
+			} else {
+				bgm.src = "";
+				bgm_active = false;
+				document.getElementById("bgm_icon").src="data/bgm_off.png";
+			}
+		}
 		
 		function loadImage(src) {
 			//TODO: Will painting throw an error before the image is loaded? If not idk.
