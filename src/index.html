@@ -416,7 +416,11 @@
 		function load() {
 			if (window.localStorage.length>0) {
 				let saveObject = JSON.parse(window.localStorage.getItem("save"));
-				if (saveObject != null) {
+				if (saveObject !== null) {
+					if (saveObject.player===undefined || saveObject.garden===undefined) {
+						console.log("Found broken save data. Skipping load.");
+						return;
+					}
 					game.player = saveObject.player;
 					game.garden = saveObject.garden;
 					
