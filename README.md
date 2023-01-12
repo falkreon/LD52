@@ -1,3 +1,8 @@
-# LD52 - Harvest
+# LD52 - Harvest Battle Adventure
 
-This is my entry for Ludum Dare 52. The intent is to start out as a battler, but when seeds drop, unfold into a windowsill gardening game as well. Poisons and herbs you get from your garden can then buy more battle upgrades and hopefully we'll wind up with a nice ebb and flow between the two tabs.
+This game was originally made for Ludum Dare 52.
+
+https://ldjam.com/events/ludum-dare/52/harvest-battle-adventure
+https://falkreon.itch.io/harvest-battle-adventure
+
+The main branch is for post-compo work. To see the compo version, switch to the compo branch.
