@@ -15,6 +15,7 @@
 			background-color: #333;
 			margin: 0px;
 			padding: 0px;
+			overflow: hidden;
 		}
 		
 		.section {
@@ -30,10 +31,11 @@
 		
 		.items {
 			color: #000;
-			background-color: #FFF;
-			width: 384px;
-			margin-left: auto;
-			margin-right: auto;
+			background-color: #23cc4f;
+			width: 100%;
+			aspect-ratio: 12 / 1;
+			margin-bottom: 0px;
+			margin: 0px;
 		}
 		
 		.item {
@@ -44,70 +46,10 @@
 			white-space: nowrap;
 		}
 		
-		#seed_select {
-			width: 384px;
-			text-align: center;
-		}
-		
-		.seed {
-			display: inline-block;
-			width: 80px;
-			height: 80px;
-			border: 1px solid #444;
-			border-radius: 4px 4px;
-			background-color: #AAA;
-			text-align: center;
-			vertical-align: middle;
-			
-			margin-left: 1px;
-			margin-right: 1px;
-			box-shadow: 2px 2px 1px rgba(0, 0, 0, 0.25);
-		}
-		
-		.seed > img {
-			position: relative;
-			top: 50%;
-			transform: translateY(-50%);
-			
-			width: 32px;
-			height: 32px;
-			image-rendering: crisp-edges;
-		}
-		
-		.seed.selected {
-			border:2px solid #6F6;
-		}
-		
 		.rel_wrapper {
 			position: relative;
 			height: 0px;
 			width: 384px;
-		}
-		
-		#seed_info {
-			position: absolute;
-			width: 360px;
-			height: 128px;
-			left: 2px;
-			top: -128px;
-			margin-left: auto;
-			margin-right: auto;
-			background-color: #ba9b80;
-			border: solid 2px #000;
-			border-radius: 6px 6px;
-			
-			padding-top: 2px;
-			padding-bottom: 2px;
-			padding-left: 6px;
-			padding-right: 6px;
-			vertical-align: top;
-			
-			font-size: 10pt;
-			font-style: italic;
-		}
-		
-		#seed_info_x {
-			float:right;
 		}
 		
 		.fakebutton {
@@ -124,79 +66,6 @@
 		            user-select: none; /* Non-prefixed version, currently supported by Chrome, Edge, Opera and Firefox */
 		}
 		
-		.upgrade {
-			font-family: sans-serif;
-			width: 376;
-			height: 60px;
-			text-align: left;
-			color: #444;
-			background-color: #999;
-			border: 1px solid #777;
-			border-radius: 6px 6px;
-			box-shadow: 2px 2px 1px rgba(0, 0, 0, 0.25);
-			margin: 2px;
-			margin-bottom: 6px;
-			padding: 2px;
-			position: relative;
-		}
-
-		.upgrade h1 {
-			display: inline-block;
-			font-size: 12pt;
-			font-style: bold;
-			position: absolute;
-			left: 64px;
-			top: -8px;
-		}
-
-		.upgrade p {
-			_border: 1px solid #000;
-			font-size: 10pt;
-			font-style: italic;
-			
-			position: absolute;
-			left: 64px;
-			top: 14px;
-			width: 300px;
-			height: 32px
-		}
-
-		.upgrade_specifics {
-			font-weight: bold;
-			color: #00C;
-		}
-
-		.upgrade_cost {
-			text-align: right;
-			font-weight: bold;
-			color: #400;
-			text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.25);
-		}
-
-		.upgrade.enabled {
-			color: #000;
-			border: 1px solid #000;
-			background-color: #FFF;
-		}
-
-		.upgrade_count {
-			display: inline-block;
-			position: absolute;
-			top: 5px;
-			width: 40px;
-			height: 40px;
-			_border: 1px solid #000;
-			margin-top: 1px;
-			
-			font-size: 18pt;
-			font-weight: bold;
-			text-align: center;
-		}
-
-		.enabled .upgrade_cost {
-			color: #070;
-		}
-		
 		.tabs {
 			width: 133px;
 			margin-left: auto;
@@ -211,28 +80,78 @@
 			margin-left: auto;
 			margin-right: 0;
 		}
+		
+		.content {
+			display: flex;
+			flex-direction: column;
+			min-width: 100px;
+			max-width: 480px;
+			margin-left: auto;
+			margin-right: auto;
+			max-height: 100%;
+		}
+		
+		#main_canvas {
+			aspect-ratio: 1 / 1;
+			width: 100%;
+			background-color: #000;
+			margin: 0px;
+			padding: 0px;
+		}
+		
 		</style>
+		<link rel="stylesheet" href="garden.css">
+		<link rel="stylesheet" href="upgrade.css">
+		<link rel="stylesheet" href="tabs.css">
 	</head>
 	<body onLoad="begin();">
 		<audio id="bgm" volume="0.2" src="data/harvest.ogg" repeat></audio>
-		<div class="items" id="items">
 		
+		<div class="content">
+			<div class="items" id="items">
+			
+			</div>
+			
+			<canvas id="main_canvas"></canvas>
+			
+			<div class="tabs_container">
+				<div class="tabs">
+					<ul>
+						<li tabId="0" class="tab active">
+							<a href="#" onCLick="tab(0);">A</a>
+						</li>
+						<li tabId="1" class="tab">
+							<a href="#" onClick="tab(1);">B</a>
+						</li>
+					</ul>
+				</div>
+				<div class="tab_contents">
+					<div tabId="0" class="tab_content active">
+					This is data in tab A.
+					</div>
+					<div tabId="1" class="tab_content">
+					This is data in tab B.
+					<br>It is longer.
+					<p> Much longer.
+					<h1>STUFF!</h1>
+					</id>
+				</div>
+			</div>
 		</div>
-		<div class="rel_wrapper" style="margin-left: auto; margin-right: auto; width:384px; text-align:right;">
+		<!--div class="rel_wrapper" style="margin-left: auto; margin-right: auto; width:384px; text-align:right;">
 		<div class="noselect fakebutton bgm" id="bgm_div"><img id="bgm_icon" src="data/bgm.png" draggable=false onClick="toggleBgm();"/></div>
-		</div>
-		<div class="section" id="adventure_section">
+		</div-->
+		<!--div class="section" id="adventure_section">
 			<canvas class="noselect" id="adventure"  width=384, height=384, style="width: 384px; height: 384px; background-color: #000;" onClick = "attack(game);"></canvas>
 			<div id="main_tabs" class="tabs noselect" style="display:none">
 				<div class="noselect fakebutton" id="garden_button" style="display:inline"><img src="data/button_adventure_disabled.png"/></div>
 				<div class="noselect fakebutton" id="garden_button" onClick="tab('garden');" style="display:inline"><img src="data/button_garden.png"/></div>
 			</div>
-			<!--div class="noselect fakebutton" onClick="attack(game);">(tap to attack)</div-->
 			<div id="adventure_upgrades"></div>
-		</div>
+		</div-->
 		
 		
-		<div class="section" id="garden_section" style="display: none;">
+		<!--div class="section" id="garden_section" style="display: none;">
 			
 			<canvas id="garden" width=384, height=384, style="width: 384px; height: 384px; background-color: #000;" onClick="selectPot(event, game);">
 			</canvas>
@@ -253,7 +172,7 @@
 				<div class="seed noselect" id="seed_porcelain" onClick="selectSeed('seed_porcelain');"><img src="data/item_seed_porcelain.png" draggable="false"></div>
 				<div class="seed noselect" id="seed_devilstooth" onClick="selectSeed('seed_devilstooth');"><img src="data/item_seed_devilstooth.png" draggable="false"></div>
 			</div>
-		</div>
+		</div-->
 		
 		
 		<script src='https://cdn.jsdelivr.net/npm/bignumber.js@9.1.0/bignumber.min.js'></script>
@@ -516,6 +435,28 @@
 			window.requestAnimationFrame(frame);
 		}
 		
+		function tab(id) {
+			let tabDivs = document.getElementsByClassName("tab");
+			for(i=0; i<tabDivs.length; i++) {
+				if (id==tabDivs[i].getAttribute("tabId")) {
+					tabDivs[i].classList.add("active");
+				} else {
+					tabDivs[i].classList.remove("active");
+				}
+			}
+		
+			let tabContentDivs = document.getElementsByClassName("tab_content");
+			for(i=0; i<tabContentDivs.length; i++) {
+				//console.log(tabContentDivs[i].getAttribute("tabId"));
+				if (id==tabContentDivs[i].getAttribute("tabId")) {
+					tabContentDivs[i].classList.add("active");
+				} else {
+					tabContentDivs[i].classList.remove("active");
+				}
+			}
+		}
+		
+		/*
 		function tab(name) {
 			if (name=="garden") {
 				document.getElementById("adventure_section").style.display = "none";
@@ -526,7 +467,7 @@
 			} else {
 				console.log("CANNOT FIND TAB '"+name+"'!");
 			}
-		}
+		}*/
 		
 		
 		
