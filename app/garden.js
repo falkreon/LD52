@@ -205,6 +205,7 @@ function selectPot(event, game) {
 	}
 }
 
+/*
 document.getElementById("garden").addEventListener("mousemove", (event) => {
 	const rect = document.getElementById("garden").getBoundingClientRect();
 	const x = event.clientX - rect.left;
@@ -215,4 +216,4 @@ document.getElementById("garden").addEventListener("mousemove", (event) => {
 	if (selectedSeed!==null) {
 		hoveredSeed = index;
 	}
-});
+});*/

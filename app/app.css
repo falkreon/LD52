@@ -1,0 +1,93 @@
+body {
+	color: #999;
+	background-color: #333;
+	margin: 0px;
+	padding: 0px;
+	overflow: hidden;
+}
+
+.section {
+	color: #000;
+	background-color: #888;
+	width: 384px;
+	margin-left: auto;
+	margin-right: auto;
+	padding-left: 0px;
+	padding-right: 0px;
+	padding-bottom: 4px;
+}
+
+.items {
+	color: #000;
+	background-color: #23cc4f;
+	width: 100%;
+	aspect-ratio: 12 / 1;
+	margin-bottom: 0px;
+	margin: 0px;
+}
+
+.item {
+	display: inline;
+	width: 64px;
+	margin-left: 4px;
+	margin-right: 4px;
+	white-space: nowrap;
+}
+
+.rel_wrapper {
+	position: relative;
+	height: 0px;
+	width: 384px;
+}
+
+.fakebutton {
+	text-align: center;
+	font-size: 20pt;
+}
+
+.noselect {
+	-webkit-touch-callout: none; /* iOS Safari */
+	-webkit-user-select: none; /* Safari */
+		-khtml-user-select: none; /* Konqueror HTML */
+		-moz-user-select: none; /* Old versions of Firefox */
+		-ms-user-select: none; /* Internet Explorer/Edge */
+			user-select: none; /* Non-prefixed version, currently supported by Chrome, Edge, Opera and Firefox */
+}
+
+.tabs {
+	width: 133px;
+	margin-left: auto;
+	margin-right: auto;
+}
+
+.bgm {
+	width: 32px;
+	height: 32px;
+	_background-color: #FFF;
+	_border: 1px solid #000;
+	margin-left: auto;
+	margin-right: 0;
+}
+
+.content {
+	display: flex;
+	flex-direction: column;
+	min-width: 100px;
+	max-width: 480px;
+	margin-left: auto;
+	margin-right: auto;
+	max-height: 100%;
+}
+
+#main_canvas {
+	aspect-ratio: 1 / 1;
+	width: 100%;
+	background-color: #000;
+	margin: 0px;
+	padding: 0px;
+	
+	image-rendering: crisp-edges;
+	image-rendering: -moz-crisp-edges;
+	image-rendering: -webkit-optimize-contrast;
+	-ms-interpolation-mode: nearest-neighbor;
+}

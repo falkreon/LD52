@@ -1,105 +1,7 @@
 <!DOCTYPE html>
 <html>
 	<head>
-		<style>
-		
-		canvas {
-			image-rendering: crisp-edges;
-			image-rendering: -moz-crisp-edges;
-			image-rendering: -webkit-optimize-contrast;
-			-ms-interpolation-mode: nearest-neighbor;
-		}
-		
-		body {
-			color: #999;
-			background-color: #333;
-			margin: 0px;
-			padding: 0px;
-			overflow: hidden;
-		}
-		
-		.section {
-			color: #000;
-			background-color: #888;
-			width: 384px;
-			margin-left: auto;
-			margin-right: auto;
-			padding-left: 0px;
-			padding-right: 0px;
-			padding-bottom: 4px;
-		}
-		
-		.items {
-			color: #000;
-			background-color: #23cc4f;
-			width: 100%;
-			aspect-ratio: 12 / 1;
-			margin-bottom: 0px;
-			margin: 0px;
-		}
-		
-		.item {
-			display: inline;
-			width: 64px;
-			margin-left: 4px;
-			margin-right: 4px;
-			white-space: nowrap;
-		}
-		
-		.rel_wrapper {
-			position: relative;
-			height: 0px;
-			width: 384px;
-		}
-		
-		.fakebutton {
-			text-align: center;
-			font-size: 20pt;
-		}
-		
-		.noselect {
-		  -webkit-touch-callout: none; /* iOS Safari */
-		    -webkit-user-select: none; /* Safari */
-		     -khtml-user-select: none; /* Konqueror HTML */
-		       -moz-user-select: none; /* Old versions of Firefox */
-		        -ms-user-select: none; /* Internet Explorer/Edge */
-		            user-select: none; /* Non-prefixed version, currently supported by Chrome, Edge, Opera and Firefox */
-		}
-		
-		.tabs {
-			width: 133px;
-			margin-left: auto;
-			margin-right: auto;
-		}
-		
-		.bgm {
-			width: 32px;
-			height: 32px;
-			_background-color: #FFF;
-			_border: 1px solid #000;
-			margin-left: auto;
-			margin-right: 0;
-		}
-		
-		.content {
-			display: flex;
-			flex-direction: column;
-			min-width: 100px;
-			max-width: 480px;
-			margin-left: auto;
-			margin-right: auto;
-			max-height: 100%;
-		}
-		
-		#main_canvas {
-			aspect-ratio: 1 / 1;
-			width: 100%;
-			background-color: #000;
-			margin: 0px;
-			padding: 0px;
-		}
-		
-		</style>
+		<link rel="stylesheet" href="app.css">
 		<link rel="stylesheet" href="garden.css">
 		<link rel="stylesheet" href="upgrade.css">
 		<link rel="stylesheet" href="tabs.css">
@@ -112,12 +14,12 @@
 			
 			</div>
 			
-			<canvas id="main_canvas"></canvas>
+			<canvas id="main_canvas" width="240" height="240"></canvas>
 			
 			<div class="tabs_container">
 				<div class="tabs">
 					<ul>
-						<li tabId="0" class="tab active">
+						<li tabId="0" class="tab">
 							<a href="#" onCLick="tab(0);">A</a>
 						</li>
 						<li tabId="1" class="tab">
@@ -126,7 +28,7 @@
 					</ul>
 				</div>
 				<div class="tab_contents">
-					<div tabId="0" class="tab_content active">
+					<div tabId="0" class="tab_content">
 					This is data in tab A.
 					</div>
 					<div tabId="1" class="tab_content">
@@ -175,7 +77,9 @@
 		</div-->
 		
 		
-		<script src='https://cdn.jsdelivr.net/npm/bignumber.js@9.1.0/bignumber.min.js'></script>
+		<!--script src='https://cdn.jsdelivr.net/npm/bignumber.js@9.1.0/bignumber.min.js'></script-->
+		<script type="text/javascript" src="util.js"></script>
+		<script type="text/javascript" src="app.js"></script>
 		<script type="text/javascript" src="adventure.js"></script>
 		<script type="text/javascript" src="garden.js"></script>
 		<script>
@@ -189,14 +93,7 @@
 		var ticksSinceSave = -1;
 		var bgm_active = true;
 		
-		function begin() {
-			var bgm = document.getElementById("bgm");
-			bgm.volume = 0.2;
-			bgm.loop = true;
-			bgm.play();
-			
-			window.requestAnimationFrame(frame);
-		}
+		
 		
 		function toggleBgm() {
 			var bgm = document.getElementById("bgm");
@@ -210,13 +107,6 @@
 				bgm_active = false;
 				document.getElementById("bgm_icon").src="data/bgm_off.png";
 			}
-		}
-		
-		function loadImage(src) {
-			//TODO: Will painting throw an error before the image is loaded? If not idk.
-			var result = new Image();
-			result.src = src;
-			return result;
 		}
 		
 		//Assets
@@ -433,27 +323,6 @@
 			
 			previousFrame = now;
 			window.requestAnimationFrame(frame);
-		}
-		
-		function tab(id) {
-			let tabDivs = document.getElementsByClassName("tab");
-			for(i=0; i<tabDivs.length; i++) {
-				if (id==tabDivs[i].getAttribute("tabId")) {
-					tabDivs[i].classList.add("active");
-				} else {
-					tabDivs[i].classList.remove("active");
-				}
-			}
-		
-			let tabContentDivs = document.getElementsByClassName("tab_content");
-			for(i=0; i<tabContentDivs.length; i++) {
-				//console.log(tabContentDivs[i].getAttribute("tabId"));
-				if (id==tabContentDivs[i].getAttribute("tabId")) {
-					tabContentDivs[i].classList.add("active");
-				} else {
-					tabContentDivs[i].classList.remove("active");
-				}
-			}
 		}
 		
 		/*
